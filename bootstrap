@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# create m4 directory if does not exist
+[ -d m4 ] || mkdir m4
+
+AUTORECONF=${AUTORECONF:-autoreconf}
+
+# Check we have all tools installed
+check_command() {
+    command -v "${1}" > /dev/null 2>&1 || {
+        >&2 echo "./bootstrap: could not find \`$1'. \`$1' is required to run bootstrap."
+        exit 1
+    }
+}
+
+check_command "$AUTORECONF"
+
+autoreconf --install
+
+exit 0

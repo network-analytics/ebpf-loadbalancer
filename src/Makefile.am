@@ -1,0 +1,29 @@
+AM_LDFLAGS = $(EXTRA_LDFLAGS)
+
+ACLOCAL_AMFLAGS = -I m4
+
+LINUX_SRC=$(LINUX_HEADERS)
+LINUX_H=-I$(LINUX_SRC)/arch/x86/include -I$(LINUX_SRC)/arch/x86/include/generated -I$(LINUX_SRC)/include -I$(LINUX_SRC)/arch/x86/include/uapi -I$(LINUX_SRC)/arch/x86/include/generated/uapi -I$(LINUX_SRC)/include/uapi -I$(LINUX_SRC)/include/generated/uapi
+EBPF_CLDFLAGS=-fcolor-diagnostics -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -g -fPIC -g -O2 -D__KERNEL__ -D__TARGET_ARCH_x86 --target=bpf -Wall -Wno-macro-redefined -D__BPF_TRACING__
+
+vmlinux.h:
+	bpftool btf dump file /sys/kernel/btf/vmlinux format c > $@
+
+unyte_reuseport_kern.o: vmlinux.h
+	clang $(LINUX_H) $(EBPF_CLDFLAGS) -o $@ -c unyte_reuseport_kern.c
+
+all-local: unyte_reuseport_kern.o
+
+unyte_reuseport_kern_odir = $(libdir)
+unyte_reuseport_kern_o_DATA = \
+	unyte_reuseport_kern.o \
+	$(NULL)
+
+bin_PROGRAMS = main udp_publisher
+
+main_SOURCES = main.c
+main_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread
+# main_LDADD = $(srcdir)/../../src/libunyte-udp-notif.la
+
+udp_publisher_SOURCES = udp_publisher.c
+udp_publisher_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread
