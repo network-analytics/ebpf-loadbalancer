@@ -99,8 +99,8 @@ int main(int argc, char *argv[])
   if (argc != 5)
   {
     printf("Error: arguments not valid\n");
-    printf("Usage: ./client_ebpf_user <ip> <port> <index> <loadbalance_max>\n");
-    printf("Example: ./client_ebpf_user 10.0.2.15 10001 0 5\n");
+    printf("Usage: ./main <ip> <port> <index> <loadbalance_max>\n");
+    printf("Example: ./main 10.0.2.15 10001 0 5\n");
     exit(1);
   }
 
