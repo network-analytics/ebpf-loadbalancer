@@ -112,5 +112,5 @@ int unyte_attach_ebpf_to_socket(int socketfd, uint32_t key, uint32_t balancer_co
     }
   }
 
-  return usock;
+  return 0;
 }

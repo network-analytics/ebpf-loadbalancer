@@ -110,7 +110,10 @@ int main(int argc, char *argv[])
   int socketfd = unyte_create_socket(argv[1], argv[2], SK_BUFFER);
 
   // Attaching eBPF load balancer to socket
-  unyte_attach_ebpf_to_socket(socketfd, atoi(argv[3]), atoi(argv[4]));
+  int ret_attach = unyte_attach_ebpf_to_socket(socketfd, atoi(argv[3]), atoi(argv[4]));
+
+  if (ret_attach != 0)
+    exit(1);
 
   struct sockaddr_storage peer_addr;
   socklen_t peer_addr_len = sizeof(struct sockaddr_storage);

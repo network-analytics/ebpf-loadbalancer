@@ -17,6 +17,7 @@ $ sudo yum install autoconf libtool make automake pkgconf
 ### eBPF Dependencies
 
 To use eBPF loadbalancing `Python3` is needed for eBPF compilation.
+Another requirement is `libbpf` (github.com/libbpf/libbpf) >= 0.4.0.
 
 On Ubuntu:
 ```shell
@@ -40,7 +41,21 @@ $ make install      # Usually needs sudo permissions
 ```
 
 ## Running
-TODO:
+To test the loadbalancer, multiple instances should be launched. In this example, messages will be loadbalanced to 3 instances based on their src IP.
+To run 3 collectors:
+```shell
+$ cd src
+$ sudo bash -c 'ulimit -l unlimited; ./main 10.0.2.15 10001 0 3'   // first collector
+$ sudo bash -c 'ulimit -l unlimited; ./main 10.0.2.15 10001 1 3'   // second collector
+$ sudo bash -c 'ulimit -l unlimited; ./main 10.0.2.15 10001 2 3'   // third collector
+```
+
+To see the loadbalancer working, you should instance multiple publishers sending from different src ips, otherwise, all packets will be hashed to the same collector.
+Publisher:
+```shell
+$ cd src
+$ ./src/udp_publisher 10.0.2.15 10001 100
+```
 
 ## Debug
 To show the maps:
