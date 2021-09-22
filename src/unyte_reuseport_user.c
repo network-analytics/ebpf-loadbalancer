@@ -10,7 +10,7 @@
 #define USED_VLEN 1
 #define MAX_TO_RECEIVE 20
 
-#define BPF_KERNEL_PRG "reuseport_udp_kern.o"
+#define BPF_KERNEL_PRG "unyte_reuseport_kern.o"
 
 #ifndef MAX_BALANCER_COUNT
 // Keep in sync with _kern.c
@@ -27,7 +27,7 @@ static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va
  * uint32_t key : index of the socket to be filled in the eBPF hash table.
  * uint32_t balancer_count : max values to be used in eBPF reuse. Should be <= MAX_BALANCER_COUNT.
  */
-int attach_ebpf_to_socket(int socketfd, uint32_t key, uint32_t balancer_count)
+int unyte_attach_ebpf_to_socket(int socketfd, uint32_t key, uint32_t balancer_count)
 {
   int umap_fd, size_map_fd, prog_fd;
   char filename[] = BPF_KERNEL_PRG;

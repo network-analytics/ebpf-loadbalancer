@@ -104,7 +104,11 @@ build/
 libtool
 config.h
 vmlinux.h
+own_commands
 
 # executables
 main
-udp_publisher.c
+udp_publisher
+
+# IDE
+.vscode

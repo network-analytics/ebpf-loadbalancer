@@ -21,7 +21,7 @@ unyte_reuseport_kern_o_DATA = \
 
 bin_PROGRAMS = main udp_publisher
 
-main_SOURCES = main.c
+main_SOURCES = main.c unyte_reuseport_user.c
 main_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread
 # main_LDADD = $(srcdir)/../../src/libunyte-udp-notif.la
 
