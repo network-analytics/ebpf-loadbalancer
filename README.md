@@ -1,5 +1,6 @@
 # eBPF Load balancer
-Linux eBPF load balancer to attach into REUSE_PORT socket group.
+Linux eBPF load balancer to be attached into REUSE_PORT socket group.
+This eBPF program allows load balance packets based on their src IP. All packets from the same src IP will land into the same collector.
 
 ## Dependencies
 This project uses autotools, gcc and clang to compile.
@@ -39,6 +40,11 @@ $ ./configure       # See ./configure --help for options
 $ make
 $ make install      # Usually needs sudo permissions
 ```
+
+### Configure options
+There are some custom `./configure` options :
+- `--with-pkgconfigdir=[/own_path/pkgconfig]`: overwrite pkgconfig directory to install .pc file [default: ${PREFIX}/lib/pkgconfig]
+- `--with-linux=[/own_path/linux/src]`: linux source code necesary for eBPF compilation [default: /usr/src/linux]. (On Ubuntu use /usr/src/<linux>-generic version)
 
 ## Running
 To test the loadbalancer, multiple instances should be launched. In this example, messages will be loadbalanced to 3 instances based on their src IP.
