@@ -16,83 +16,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <assert.h>
 #include <string.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 #include "./unyte_reuseport_user.h"
+
+// if installed in machine
+// #include <unyte-reuseport-loadbalancer/unyte_reuseport_user.h>
 
 #define SK_BUFFER 20971520 // 20MB of socket buffer size
 #define UDP_MAX_SIZE 65535
-
-/**
- * Creates a datagram socket with SO_REUSEPORT activated
- */
-int unyte_create_socket(char *address, char *port, uint64_t buffer_size)
-{
-  assert(address != NULL);
-  assert(port != NULL);
-  assert(buffer_size > 0);
-
-  struct addrinfo *addr_info;
-  struct addrinfo hints;
-
-  memset(&hints, 0, sizeof(hints));
-
-  hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
-
-  // Using getaddrinfo to support both IPv4 and IPv6
-  int rc = getaddrinfo(address, port, &hints, &addr_info);
-
-  if (rc != 0)
-  {
-    printf("getaddrinfo error: %s\n", gai_strerror(rc));
-    exit(EXIT_FAILURE);
-  }
-
-  printf("Address type: %s | %d\n", (addr_info->ai_family == AF_INET) ? "IPv4" : "IPv6", ntohs(((struct sockaddr_in *)addr_info->ai_addr)->sin_port));
-
-  // create socket on UDP protocol
-  int sockfd = socket(addr_info->ai_family, addr_info->ai_socktype, addr_info->ai_protocol);
-
-  // handle error
-  if (sockfd < 0)
-  {
-    perror("Cannot create socket");
-    exit(EXIT_FAILURE);
-  }
-
-  // Use SO_REUSEPORT to be able to launch multiple collector on the same address
-  int optval = 1;
-  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(int)) < 0)
-  {
-    perror("Cannot set SO_REUSEPORT option on socket");
-    exit(EXIT_FAILURE);
-  }
-
-  uint64_t receive_buf_size = buffer_size;
-  if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &receive_buf_size, sizeof(receive_buf_size)) < 0)
-  {
-    perror("Cannot set buffer size");
-    exit(EXIT_FAILURE);
-  }
-
-  if (bind(sockfd, addr_info->ai_addr, (int)addr_info->ai_addrlen) == -1)
-  {
-    perror("Bind failed");
-    close(sockfd);
-    exit(EXIT_FAILURE);
-  }
-
-  // free addr_info after usage
-  freeaddrinfo(addr_info);
-
-  return sockfd;
-}
 
 int main(int argc, char *argv[])
 {
@@ -107,10 +40,10 @@ int main(int argc, char *argv[])
   printf("Listening on %s:%s\n", argv[1], argv[2]);
 
   // Create a udp socket with default socket buffer
-  int socketfd = unyte_create_socket(argv[1], argv[2], SK_BUFFER);
+  int socketfd = unyte_create_udp_bound_socket(argv[1], argv[2], SK_BUFFER);
 
   // Attaching eBPF load balancer to socket
-  int ret_attach = unyte_attach_ebpf_to_socket(socketfd, atoi(argv[3]), atoi(argv[4]));
+  int ret_attach = unyte_attach_ebpf_to_socket(socketfd, atoi(argv[3]), atoi(argv[4]), "unyte_reuseport", "unyte_reuseport_kern.o");
 
   if (ret_attach != 0)
     exit(1);

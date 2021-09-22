@@ -6,31 +6,90 @@
 #include <bpf/libbpf.h>
 #include <linux/bpf.h>
 #include <linux/unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #define USED_VLEN 1
 #define MAX_TO_RECEIVE 20
-
-#define BPF_KERNEL_PRG "unyte_reuseport_kern.o"
 
 #ifndef MAX_BALANCER_COUNT
 // Keep in sync with _kern.c
 #define MAX_BALANCER_COUNT 128
 #endif
 
+int unyte_create_udp_bound_socket(char *address, char *port, uint64_t buffer_size)
+{
+  assert(address != NULL);
+  assert(port != NULL);
+  assert(buffer_size > 0);
+
+  struct addrinfo *addr_info;
+  struct addrinfo hints;
+
+  memset(&hints, 0, sizeof(hints));
+
+  hints.ai_socktype = SOCK_DGRAM;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
+
+  // Using getaddrinfo to support both IPv4 and IPv6
+  int rc = getaddrinfo(address, port, &hints, &addr_info);
+
+  if (rc != 0)
+  {
+    printf("getaddrinfo error: %s\n", gai_strerror(rc));
+    exit(EXIT_FAILURE);
+  }
+
+  printf("Address type: %s | %d\n", (addr_info->ai_family == AF_INET) ? "IPv4" : "IPv6", ntohs(((struct sockaddr_in *)addr_info->ai_addr)->sin_port));
+
+  // create socket on UDP protocol
+  int sockfd = socket(addr_info->ai_family, addr_info->ai_socktype, addr_info->ai_protocol);
+
+  // handle error
+  if (sockfd < 0)
+  {
+    perror("Cannot create socket");
+    exit(EXIT_FAILURE);
+  }
+
+  // Use SO_REUSEPORT to be able to launch multiple collector on the same address
+  int optval = 1;
+  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(int)) < 0)
+  {
+    perror("Cannot set SO_REUSEPORT option on socket");
+    exit(EXIT_FAILURE);
+  }
+
+  uint64_t receive_buf_size = buffer_size;
+  if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &receive_buf_size, sizeof(receive_buf_size)) < 0)
+  {
+    perror("Cannot set buffer size");
+    exit(EXIT_FAILURE);
+  }
+
+  if (bind(sockfd, addr_info->ai_addr, (int)addr_info->ai_addrlen) == -1)
+  {
+    perror("Bind failed");
+    close(sockfd);
+    exit(EXIT_FAILURE);
+  }
+
+  // free addr_info after usage
+  freeaddrinfo(addr_info);
+
+  return sockfd;
+}
+
 static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args) {
   return level <= LIBBPF_DEBUG ? vfprintf(stderr, format, args) : 0;
 }
 
-/**
- * Open socket, loads eBPF program and attaches it to the opened socket.
- * int socketfd : socket file descriptor to listen to.
- * uint32_t key : index of the socket to be filled in the eBPF hash table.
- * uint32_t balancer_count : max values to be used in eBPF reuse. Should be <= MAX_BALANCER_COUNT.
- */
-int unyte_attach_ebpf_to_socket(int socketfd, uint32_t key, uint32_t balancer_count)
+int unyte_attach_ebpf_to_socket(int socketfd, uint32_t key, uint32_t balancer_count, const char pin_root_path[], const char bpf_kernel_prg_filename[])
 {
   int umap_fd, size_map_fd, prog_fd;
-  char filename[] = BPF_KERNEL_PRG;
   int64_t usock = socketfd;
   long err = 0;
 
@@ -45,10 +104,13 @@ int unyte_attach_ebpf_to_socket(int socketfd, uint32_t key, uint32_t balancer_co
   // set log
   libbpf_set_print(libbpf_print_fn);
 
+  char pin_path[100];
+  sprintf(pin_path, "/sys/fs/bpf/%s", pin_root_path);
+
   // Open reuseport_udp_kern.o
   struct bpf_object_open_opts opts = {.sz = sizeof(struct bpf_object_open_opts),
-                                      .pin_root_path = "/sys/fs/bpf/reuseport"};
-  struct bpf_object *obj = bpf_object__open_file(filename, &opts);
+                                      .pin_root_path = pin_path};
+  struct bpf_object *obj = bpf_object__open_file(bpf_kernel_prg_filename, &opts);
 
   err = libbpf_get_error(obj);
   if (err) {

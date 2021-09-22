@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+libdir=@libdir@
+
+Name: unyte-reuseport-loadbalancer
+Description: Unyte eBPF reuseport loadbalancer library
+Version: @VERSION@
+Cflags: -I${includedir}/unyte-reuseport-loadbalancer
+Libs: -L${libdir} -lunyte-reuseport-loadbalancer

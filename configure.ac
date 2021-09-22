@@ -72,5 +72,6 @@ AC_CHECK_FILES([
 AC_CONFIG_FILES([
     Makefile
     src/Makefile
+    unyte-reuseport-loadbalancer.pc
 ])
 AC_OUTPUT

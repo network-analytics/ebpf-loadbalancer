@@ -105,6 +105,7 @@ libtool
 config.h
 vmlinux.h
 own_commands
+unyte-reuseport-loadbalancer.pc
 
 # executables
 main

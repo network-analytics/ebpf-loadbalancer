@@ -19,11 +19,25 @@ unyte_reuseport_kern_o_DATA = \
 	unyte_reuseport_kern.o \
 	$(NULL)
 
+unyteincludedir = $(includedir)/unyte-reuseport-loadbalancer
+unyteinclude_HEADERS = 		\
+    unyte_reuseport_user.h  \
+    $(NULL)
+
 bin_PROGRAMS = main udp_publisher
 
 main_SOURCES = main.c unyte_reuseport_user.c
 main_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread
-# main_LDADD = $(srcdir)/../../src/libunyte-udp-notif.la
+# main_LDADD = $(srcdir)/../../src/libunyte-reuseport-loadbalancer.la
 
 udp_publisher_SOURCES = udp_publisher.c
 udp_publisher_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread
+
+lib_LTLIBRARIES = libunyte-reuseport-loadbalancer.la
+
+libunyte_reuseport_loadbalancer_la_SOURCES = \
+    unyte_reuseport_user.c           \
+    unyte_reuseport_user.h           \
+    $(NULL)
+
+libunyte_reuseport_loadbalancer_la_CFLAGS = -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC
