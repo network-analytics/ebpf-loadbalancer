@@ -24,6 +24,13 @@ AC_ARG_WITH([pkgconfigdir],
 PKGCONFIG_USER=$with_pkgconfigdir
 AC_SUBST([PKGCONFIG_USER])
 
+AC_ARG_ENABLE([debug],
+    [AS_HELP_STRING([--enable-debug], [Enable debug logs in eBPF program.])],
+    [ debug_enabled=yes ],
+    [ debug_enabled=no ]
+)
+AM_CONDITIONAL(DEBUG, test "x$debug_enabled" = "xyes")
+
 dnl eBPF example
 AC_CHECK_LIB(bpf, bpf_object__find_map_by_name, [], [
     echo "*** Error! You need to install libbpf first. ***"

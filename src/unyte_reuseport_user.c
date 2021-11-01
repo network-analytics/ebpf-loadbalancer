@@ -83,9 +83,11 @@ int unyte_create_udp_bound_socket(char *address, char *port, uint64_t buffer_siz
   return sockfd;
 }
 
-// static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args) {
-//   return level <= LIBBPF_DEBUG ? vfprintf(stderr, format, args) : 0;
-// }
+#ifdef _LOG_DEBUG
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args) {
+  return level <= LIBBPF_DEBUG ? vfprintf(stderr, format, args) : 0;
+}
+#endif
 
 int unyte_attach_ebpf_to_socket(int socketfd, uint32_t key, uint32_t balancer_count, const char pin_root_path[], const char bpf_kernel_prg_filename[])
 {
@@ -101,8 +103,10 @@ int unyte_attach_ebpf_to_socket(int socketfd, uint32_t key, uint32_t balancer_co
   if (balancer_count > 0) printf(" (%u buckets in total)", balancer_count);
   puts("");
 
+#ifdef _LOG_DEBUG
   // set log
-  // libbpf_set_print(libbpf_print_fn);
+  libbpf_set_print(libbpf_print_fn);
+#endif
 
   char pin_path[100];
   sprintf(pin_path, "/sys/fs/bpf/%s", pin_root_path);

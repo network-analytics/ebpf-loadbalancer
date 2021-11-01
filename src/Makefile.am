@@ -1,5 +1,9 @@
 AM_LDFLAGS = $(EXTRA_LDFLAGS)
 
+if DEBUG
+DEBUG_FLAGS=-D_LOG_DEBUG
+endif
+
 ACLOCAL_AMFLAGS = -I m4
 
 LINUX_SRC=$(LINUX_HEADERS)
@@ -9,8 +13,8 @@ EBPF_CLDFLAGS=-fcolor-diagnostics -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -g 
 vmlinux.h:
 	bpftool btf dump file /sys/kernel/btf/vmlinux format c > $@
 
-unyte_reuseport_kern.o: vmlinux.h
-	clang $(LINUX_H) $(EBPF_CLDFLAGS) -o $@ -c unyte_reuseport_kern.c
+unyte_reuseport_kern.o: unyte_reuseport_kern.c vmlinux.h
+	clang $(LINUX_H) $(EBPF_CLDFLAGS) $(DEBUG_FLAGS) -o $@ -c $<
 
 all-local: unyte_reuseport_kern.o
 
@@ -27,11 +31,11 @@ unyteinclude_HEADERS = 		\
 bin_PROGRAMS = main udp_publisher
 
 main_SOURCES = main.c unyte_reuseport_user.c
-main_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread
+main_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread $(DEBUG_FLAGS)
 # main_LDADD = $(srcdir)/../../src/libunyte-reuseport-loadbalancer.la
 
 udp_publisher_SOURCES = udp_publisher.c
-udp_publisher_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread
+udp_publisher_CFLAGS = -I$(srcdir)/../../src -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC -pthread $(DEBUG_FLAGS)
 
 lib_LTLIBRARIES = libunyte-reuseport-loadbalancer.la
 
@@ -40,4 +44,4 @@ libunyte_reuseport_loadbalancer_la_SOURCES = \
     unyte_reuseport_user.h           \
     $(NULL)
 
-libunyte_reuseport_loadbalancer_la_CFLAGS = -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC
+libunyte_reuseport_loadbalancer_la_CFLAGS = -Wextra -Wall -ansi -g -std=c11 -D_GNU_SOURCE -fPIC $(DEBUG_FLAGS)
