@@ -86,7 +86,7 @@ static inline u32 hash(u32 ip) {
   if (*n == 0) {
     // TODO: Handle bpf_get_prandom_u32() == 0
     *n = bpf_get_prandom_u32();
-    bpf_printk(LOC "Updating nonce to %x\n", *n);
+    // bpf_printk(LOC "Updating nonce to %x\n", *n);
   }
 
   initval = *n;
@@ -118,7 +118,7 @@ enum sk_action _selector(struct sk_reuseport_md *reuse) {
       targets = &udp_balancing_targets;
       break;
     default:
-      bpf_printk(LOC "Unsupported IPPROTO=%d\n", reuse->ip_protocol);
+      // bpf_printk(LOC "Unsupported IPPROTO=%d\n", reuse->ip_protocol);
       return SK_DROP;
   }
 
@@ -130,18 +130,18 @@ enum sk_action _selector(struct sk_reuseport_md *reuse) {
     bpf_map_update_elem(&size, &zero, balancer_count, BPF_ANY);
   }
 
-  bpf_printk(LOC "Balancing across %d hash buckets\n", *balancer_count);
+  // bpf_printk(LOC "Balancing across %d hash buckets\n", *balancer_count);
   // hash on the IP only
   key = hash(__builtin_bswap32(ip.saddr)) % *balancer_count;
-  bpf_printk(LOC "src: %x, dest: %x, key: %d\n", __builtin_bswap32(ip.saddr), __builtin_bswap32(ip.daddr), key);
+  // bpf_printk(LOC "src: %x, dest: %x, key: %d\n", __builtin_bswap32(ip.saddr), __builtin_bswap32(ip.daddr), key);
 
   // side-effect sets dst socket if found
   if (bpf_sk_select_reuseport(reuse, targets, &key, 0) == 0) {
     action = SK_PASS;
-    bpf_printk(LOC "=> action: pass\n\n");
+    // bpf_printk(LOC "=> action: pass\n\n");
   } else {
     action = SK_DROP;
-    bpf_printk(LOC "=> action: drop\n\n");
+    // bpf_printk(LOC "=> action: drop\n\n");
   }
 
   return action;
