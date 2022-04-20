@@ -46,6 +46,7 @@ $ make install      # Usually needs sudo permissions
 There are some custom `./configure` options :
 - `--with-pkgconfigdir=[/own_path/pkgconfig]`: overwrite pkgconfig directory to install .pc file [default: ${PREFIX}/lib/pkgconfig]
 - `--with-linux=[/own_path/linux/src]`: linux source code necesary for eBPF compilation [default: /usr/src/linux]. (On Ubuntu use /usr/src/<linux>-generic version)
+- `--enable-debug`: enable logs in both user-space and kernel-space eBPF program.
 
 ## Usage
 See [main](src/main.c) example. This example initializes an UDP socket bound to an address/port and attaches the eBPF load balancer to the socket.
@@ -80,5 +81,8 @@ $ bpftool map dump name tcp_balancing_t
 $ bpftool map dump name udp_balancing_t
 ```
 
-## Contributors
+Logs in eBPF program can be activated using the flag `--enable-debug` of autotools.
+Logs for eBPF program are in `/sys/kernel/debug/tracing/trace`
+
+## Credits
 This repository is based on [reuseport](https://github.com/eduarrrd/reuseport), a loadbalancer used in pmacct.
