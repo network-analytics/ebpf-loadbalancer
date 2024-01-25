@@ -53,29 +53,6 @@ AC_CHECK_FILE([/sys/kernel/btf/vmlinux], [], [
     exit -1
 ])
 
-AC_ARG_WITH([linux],
-    [AS_HELP_STRING([--with-linux], [Linux source headers [[default: /usr/src/linux]]])],
-    [LINUX_HEADERS="$withval"],
-    [LINUX_HEADERS=/usr/src/linux]
-)
-AC_SUBST([LINUX_HEADERS])
-dnl linux source headers
-AC_CHECK_FILES([
-    $LINUX_HEADERS/include/uapi/linux
-    $LINUX_HEADERS/arch/x86/include
-    $LINUX_HEADERS/arch/x86/include/generated
-    $LINUX_HEADERS/include
-    $LINUX_HEADERS/arch/x86/include/uapi
-    $LINUX_HEADERS/arch/x86/include/generated/uapi
-    $LINUX_HEADERS/include/uapi
-    $LINUX_HEADERS/include/generated/uapi
-    ], [], [
-        echo "*** Error! eBPFa needs linux source to compile the eBPF program. ***"
-        echo "*** Linux sources were not found in $LINUX_HEADERS ***"
-        exit -1
-    ]
-)
-
 AC_CONFIG_FILES([
     Makefile
     src/Makefile

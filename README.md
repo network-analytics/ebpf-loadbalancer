@@ -8,7 +8,7 @@ This project uses autotools, gcc and clang to compile.
 
 On Ubuntu:
 ```shell
-$ sudo apt-get install autoconf libtool make automake gcc pkg-config
+$ sudo apt install autoconf libtool make automake gcc pkg-config
 ```
 
 On Centos (tested on `Centos 8`):
@@ -23,12 +23,12 @@ Another requirement is `libbpf` (github.com/libbpf/libbpf) >= 0.4.0.
 
 On Ubuntu:
 ```shell
-$ sudo apt install linux-headers-$(uname -r) clang libbpf-dev linux-tools-$(uname -r)
+$ sudo apt install clang libbpf-dev linux-tools-$(uname -r)
 ```
 
 On Centos (tested on `Centos 8`):
 ```shell
-$ sudo yum install kernel-headers clang
+$ sudo yum install clang
 $ sudo dnf --enablerepo=powertools install libbpf-devel
 $ sudo dnf install bpftool
 ```
